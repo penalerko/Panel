@@ -1,4 +1,4 @@
--- پلنر هفتگی مطالعه v2 - MySQL Schema
+-- پلنر هفتگی مطالعه v3 - MySQL Schema
 CREATE DATABASE IF NOT EXISTS weekly_planner CHARACTER SET utf8mb4 COLLATE utf8mb4_persian_ci;
 USE weekly_planner;
 
@@ -83,6 +83,35 @@ CREATE TABLE IF NOT EXISTS pomodoro_sessions (
     INDEX idx_started (started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- تکالیف
+CREATE TABLE IF NOT EXISTS assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_id INT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT DEFAULT NULL,
+    due_date DATE NOT NULL,
+    priority TINYINT DEFAULT 2 COMMENT '1=کم 2=متوسط 3=زیاد',
+    status VARCHAR(20) DEFAULT 'pending' COMMENT 'pending/done',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL,
+    INDEX idx_due (due_date),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- امتحان‌ها
+CREATE TABLE IF NOT EXISTS exams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_id INT NULL,
+    title VARCHAR(200) NOT NULL,
+    exam_date DATE NOT NULL,
+    exam_time VARCHAR(10) DEFAULT NULL COMMENT 'HH:MM',
+    location VARCHAR(150) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL,
+    INDEX idx_exam_date (exam_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- تنظیمات اپ
 CREATE TABLE IF NOT EXISTS app_settings (
     `key` VARCHAR(100) PRIMARY KEY,
@@ -98,7 +127,8 @@ INSERT INTO app_settings (`key`, `value`) VALUES
 ('pomodoro_long_break','15'),
 ('theme','light'),
 ('accent','#6366f1'),
-('streak_enabled','1')
+('streak_enabled','1'),
+('date_mode','jalali')
 ON DUPLICATE KEY UPDATE `value`=VALUES(`value`);
 
 -- داده نمونه دروس
@@ -109,7 +139,3 @@ INSERT INTO subjects (name, color, icon) VALUES
 ('زبان انگلیسی', '#f59e0b', '🔤'),
 ('برنامه‌نویسی', '#8b5cf6', '💻')
 ON DUPLICATE KEY UPDATE name=name;
-
--- مایگریشن برای دیتابیس‌های قدیمی
--- اگر جدول‌ها از قبل وجود دارن ستون‌های جدید رو اضافه کن
--- این‌ها توسط init_db هم اجرا میشن
