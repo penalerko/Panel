@@ -37,6 +37,16 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+
+<!-- NAV PILLS -->
+<nav class="flex gap-2 overflow-x-auto pb-1 text-xs sticky top-[57px] z-10 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur py-2 -mx-4 px-4">
+  <a href="#sec-grid" class="shrink-0 bg-indigo-600 text-white px-3 py-1.5 rounded-full font-bold">🗓️ برنامه</a>
+  <a href="#sec-manage" class="shrink-0 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1.5 rounded-full">📖 دروس & اهداف</a>
+  <a href="#sec-tasks" class="shrink-0 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1.5 rounded-full">📝 تکالیف & امتحان</a>
+  <a href="#sec-analytics" class="shrink-0 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1.5 rounded-full">📈 نمودار & پومودورو</a>
+  <a href="#sec-history" class="shrink-0 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1.5 rounded-full">⏱️ لاگ & تقویم</a>
+</nav>
+
 <!-- STATS -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
@@ -70,44 +80,24 @@
   </div>
 </div>
 
-<!-- CHART + POMO -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-  <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-    <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-sm">📈 روند ۲۸ روز اخیر (شمسی)</h3><span class="text-xs text-slate-400" id="chartHint"></span></div>
-    <canvas id="trendChart" height="90"></canvas>
+
+<div id="sec-grid"><!-- WEEK GRID -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800 overflow-x-auto">
+  <div class="flex justify-between items-center mb-3 min-w-[720px]">
+    <h2 class="font-black">🗓️ برنامه هفتگی</h2>
+    <div class="flex gap-2 items-center">
+      <select id="planSelect" onchange="loadPlan(this.value)" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs"></select>
+      <button onclick="deletePlan()" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 px-3 py-1.5 rounded-xl">حذف هفته</button>
+    </div>
   </div>
-  <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-5 rounded-2xl shadow-lg flex flex-col">
-    <div class="flex justify-between items-start">
-      <h3 class="font-black text-sm">🍅 پومودورو</h3>
-      <select id="pomoSubject" class="bg-white/20 text-white text-xs rounded-lg px-2 py-1 border border-white/20"></select>
-    </div>
-    <div class="flex-1 flex flex-col items-center justify-center py-4">
-      <div id="pomoTime" class="text-5xl font-black tracking-widest">25:00</div>
-      <div id="pomoPhase" class="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">آماده‌ای؟</div>
-    </div>
-    <div class="flex gap-2">
-      <button id="pomoStartBtn" onclick="pomoToggle()" class="flex-1 bg-white text-indigo-600 font-black py-2.5 rounded-xl">▶ شروع</button>
-      <button onclick="pomoReset()" class="bg-white/20 px-4 py-2.5 rounded-xl">↺</button>
-      <button onclick="pomoSkip()" class="bg-white/20 px-4 py-2.5 rounded-xl">⏭</button>
-    </div>
-    <div class="flex gap-1 mt-3 justify-center" id="pomoDots"></div>
-    <div class="text-center text-xs mt-2 opacity-80" id="pomoToday">۰ × ۲۵د — ۰ دقیقه امروز</div>
-  </div>
+  <div id="weekGrid" class="grid grid-cols-7 gap-2 min-w-[720px]"></div>
+  <div class="flex gap-2 mt-3 text-[11px] text-slate-400"><span>🌅 صبح</span><span>☀️ ظهر</span><span>🌙 عصر</span><span>— هر زمان</span><span class="mr-auto">اولویت: 🔴 زیاد 🟡 متوسط 🟢 کم</span></div>
 </div>
 
-<!-- GOALS -->
-<div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-  <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-    <h2 class="font-black">🎯 اهداف هفته</h2>
-    <div class="flex gap-2 flex-wrap">
-      <select id="goalSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs"></select>
-      <input id="goalMinutes" type="number" value="300" min="10" step="10" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs w-24" placeholder="دقیقه">
-      <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold">+ هدف</button>
-    </div>
-  </div>
-  <div id="goalsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
 </div>
 
+<!-- MANAGE: SUBJECTS + GOALS -->
+<div id="sec-manage" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 <!-- SUBJECTS -->
 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
   <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
@@ -122,8 +112,21 @@
   </div>
   <div id="subjectsList" class="flex flex-wrap gap-2"></div>
 </div>
+<!-- GOALS -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
+  <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+    <h2 class="font-black">🎯 اهداف هفته</h2>
+    <div class="flex gap-2 flex-wrap">
+      <select id="goalSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs"></select>
+      <input id="goalMinutes" type="number" value="300" min="10" step="10" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs w-24" placeholder="دقیقه">
+      <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold">+ هدف</button>
+    </div>
+  </div>
+  <div id="goalsList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+</div>
+</div>
 
-<!-- ASSIGNMENTS + EXAMS -->
+<div id="sec-tasks"><!-- ASSIGNMENTS + EXAMS -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
     <div class="flex justify-between items-center mb-3">
@@ -178,20 +181,34 @@
   </div>
 </div>
 
-<!-- WEEK GRID -->
-<div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800 overflow-x-auto">
-  <div class="flex justify-between items-center mb-3 min-w-[720px]">
-    <h2 class="font-black">🗓️ برنامه هفتگی</h2>
-    <div class="flex gap-2 items-center">
-      <select id="planSelect" onchange="loadPlan(this.value)" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs"></select>
-      <button onclick="deletePlan()" class="text-xs bg-red-50 dark:bg-red-900/30 text-red-600 px-3 py-1.5 rounded-xl">حذف هفته</button>
-    </div>
+</div>
+<div id="sec-analytics"><!-- CHART + POMO -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
+    <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-sm">📈 روند ۲۸ روز اخیر (شمسی)</h3><span class="text-xs text-slate-400" id="chartHint"></span></div>
+    <canvas id="trendChart" height="90"></canvas>
   </div>
-  <div id="weekGrid" class="grid grid-cols-7 gap-2 min-w-[720px]"></div>
-  <div class="flex gap-2 mt-3 text-[11px] text-slate-400"><span>🌅 صبح</span><span>☀️ ظهر</span><span>🌙 عصر</span><span>— هر زمان</span><span class="mr-auto">اولویت: 🔴 زیاد 🟡 متوسط 🟢 کم</span></div>
+  <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-5 rounded-2xl shadow-lg flex flex-col">
+    <div class="flex justify-between items-start">
+      <h3 class="font-black text-sm">🍅 پومودورو</h3>
+      <select id="pomoSubject" class="bg-white/20 text-white text-xs rounded-lg px-2 py-1 border border-white/20"></select>
+    </div>
+    <div class="flex-1 flex flex-col items-center justify-center py-4">
+      <div id="pomoTime" class="text-5xl font-black tracking-widest">25:00</div>
+      <div id="pomoPhase" class="text-xs bg-white/20 px-3 py-1 rounded-full mt-2">آماده‌ای؟</div>
+    </div>
+    <div class="flex gap-2">
+      <button id="pomoStartBtn" onclick="pomoToggle()" class="flex-1 bg-white text-indigo-600 font-black py-2.5 rounded-xl">▶ شروع</button>
+      <button onclick="pomoReset()" class="bg-white/20 px-4 py-2.5 rounded-xl">↺</button>
+      <button onclick="pomoSkip()" class="bg-white/20 px-4 py-2.5 rounded-xl">⏭</button>
+    </div>
+    <div class="flex gap-1 mt-3 justify-center" id="pomoDots"></div>
+    <div class="text-center text-xs mt-2 opacity-80" id="pomoToday">۰ × ۲۵د — ۰ دقیقه امروز</div>
+  </div>
 </div>
 
-<!-- LOG + NOTES + CALENDAR -->
+</div>
+<div id="sec-history"><!-- LOG + NOTES + CALENDAR -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
     <h2 class="font-black mb-3">⏱️ ثبت مطالعه</h2>
@@ -241,7 +258,7 @@
     </div>
   </div>
 </div>
-
+</div>
 <footer class="text-center text-xs text-slate-400 py-6">ساخته شده با 💜 — نسخه ۳ شمسی • <a href="https://github.com/penalerko/Panel" class="underline">GitHub</a> • <span id="footerWeek"></span></footer>
 </main>
 
