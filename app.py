@@ -3,8 +3,15 @@ import pymysql
 from pymysql.cursors import DictCursor
 from flask import Flask, request, jsonify, render_template, g
 from datetime import date, timedelta, datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 import logging
+
+TEHRAN = ZoneInfo("Asia/Tehran")
+def tehran_today():
+    return datetime.now(TEHRAN).date()
+def tehran_now():
+    return datetime.now(TEHRAN)
 
 load_dotenv()
 import sys, subprocess
@@ -140,7 +147,7 @@ def to_jalali_str(gdate_str):
     except: return gdate_str
 
 def jalali_today_str():
-    t = date.today()
+    t = tehran_today()
     jy,jm,jd = gregorian_to_jalali(t.year, t.month, t.day)
     return f"{jy:04d}/{jm:02d}/{jd:02d}"
 
@@ -269,7 +276,7 @@ def init_db():
 # ---------- Helpers ----------
 DAYS_FA = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه']
 def week_range(d=None):
-    if d is None: d = date.today()
+    if d is None: d = tehran_today()
     if isinstance(d, str): d = datetime.strptime(d, '%Y-%m-%d').date()
     offset = (d.weekday() - 5) % 7
     sat = d - timedelta(days=offset)
@@ -623,7 +630,7 @@ def exams():
                     # days remaining
                     try:
                         d = datetime.strptime(r['exam_date'], '%Y-%m-%d').date()
-                        r['days_remaining'] = (d - date.today()).days
+                        r['days_remaining'] = (d - tehran_today()).days
                     except: r['days_remaining']=None
                 return jsonify(rows)
         data = request.json or {}
@@ -697,7 +704,7 @@ def stats():
                 dates = [r['log_date'] for r in cur.fetchall()]
                 streak = 0
                 if dates:
-                    today = date.today()
+                    today = tehran_today()
                     date_set = set(dates)
                     cur_d = today
                     if cur_d not in date_set: cur_d = today - timedelta(days=1)
@@ -834,7 +841,7 @@ def notes():
     try:
         db = get_db()
         if request.method == 'GET':
-            d = request.args.get('date') or str(date.today())
+            d = request.args.get('date') or str(tehran_today())
             with db.cursor() as cur:
                 cur.execute("SELECT * FROM daily_notes WHERE note_date=%s", (d,))
                 row = cur.fetchone()
@@ -847,7 +854,7 @@ def notes():
             with db.cursor() as cur: cur.execute("DELETE FROM daily_notes WHERE note_date=%s", (d,))
             return jsonify(ok=True)
         data = request.json or {}
-        d = data.get('note_date') or str(date.today())
+        d = data.get('note_date') or str(tehran_today())
         content = data.get('content','').strip()
         if not content: return jsonify(error="محتوا خالی است"), 400
         with db.cursor() as cur:
@@ -894,7 +901,7 @@ def pomodoro():
 def calendar_api():
     try:
         db = get_db()
-        month = request.args.get('month') or datetime.now().strftime('%Y-%m')
+        month = request.args.get('month') or tehran_now().strftime('%Y-%m')
         start = month + '-01'
         y, m = map(int, month.split('-'))
         if m == 12: end = f"{y+1}-01-01"
@@ -940,7 +947,7 @@ def export_data():
                 for e in exams: e['exam_date']=str(e['exam_date']); e['created_at']=str(e['created_at']); enrich_jalali(e, ['exam_date'])
             except:
                 assignments=[]; exams=[]
-            return jsonify(subjects=subjects, logs=logs, plans=plans, assignments=assignments, exams=exams, exported_at=str(datetime.now()), exported_at_jalali=jalali_today_str())
+            return jsonify(subjects=subjects, logs=logs, plans=plans, assignments=assignments, exams=exams, exported_at=str(tehran_now()), exported_at_jalali=jalali_today_str())
     except Exception as e:
         return jsonify(error=str(e)), 500
 
@@ -962,8 +969,8 @@ def export_csv():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-# BUILD_ID 1787425043 - v3.3 fix calendar UTC + subjects dedup
-# BUILD_ID 1787425043 - v3.3 fix calendar UTC + subjects dedup
+# BUILD_ID 1787425509 - v3.4 Tehran timezone fix
+# BUILD_ID 1787425509 - v3.4 Tehran timezone fix
 logging.info(f"App loaded, PORT={os.getenv('PORT','5000')}, env PORT present={bool(os.getenv('PORT'))}")
 
 if __name__ == '__main__':
