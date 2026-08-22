@@ -131,11 +131,12 @@ INSERT INTO app_settings (`key`, `value`) VALUES
 ('date_mode','jalali')
 ON DUPLICATE KEY UPDATE `value`=VALUES(`value`);
 
--- داده نمونه دروس
-INSERT INTO subjects (name, color, icon) VALUES
+-- یکتا کردن نام درس برای جلوگیری از تکرار در هر دیپلوی
+-- (ایجاد ایندکس توسط migration در app.py هم انجام می‌شود)
+-- داده نمونه دروس (بدون تکرار)
+INSERT IGNORE INTO subjects (name, color, icon) VALUES
 ('ریاضی', '#ef4444', '🔢'),
 ('فیزیک', '#3b82f6', '⚛️'),
 ('شیمی', '#10b981', '🧪'),
 ('زبان انگلیسی', '#f59e0b', '🔤'),
-('برنامه‌نویسی', '#8b5cf6', '💻')
-ON DUPLICATE KEY UPDATE name=name;
+('برنامه‌نویسی', '#8b5cf6', '💻');
