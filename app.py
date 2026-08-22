@@ -329,13 +329,20 @@ def subjects():
     try:
         db = get_db()
         with db.cursor() as cur:
+            # check duplicate name first for friendly message
+            cur.execute("SELECT id FROM subjects WHERE name=%s", (name,))
+            if cur.fetchone():
+                return jsonify(error=f"درس «{name}» قبلاً وجود دارد"), 409
             cur.execute("INSERT INTO subjects (name,color,icon,daily_goal) VALUES (%s,%s,%s,%s)", (name,color,icon,daily_goal))
             nid = cur.lastrowid
             cur.execute("SELECT * FROM subjects WHERE id=%s", (nid,))
             return jsonify(cur.fetchone()), 201
     except Exception as e:
+        msg = str(e)
+        if '1062' in msg or 'Duplicate' in msg or 'uq_subject_name' in msg:
+            return jsonify(error=f"درس «{name}» قبلاً وجود دارد"), 409
         # fallback if daily_goal column missing
-        if 'daily_goal' in str(e) or '1054' in str(e):
+        if 'daily_goal' in msg or '1054' in msg:
             try:
                 db = get_db()
                 with db.cursor() as cur:
@@ -955,8 +962,8 @@ def export_csv():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-# BUILD_ID 1787424579 - v3.2 ordered + dedup
-# BUILD_ID 1787424579 - v3.2 ordered + dedup
+# BUILD_ID 1787425043 - v3.3 fix calendar UTC + subjects dedup
+# BUILD_ID 1787425043 - v3.3 fix calendar UTC + subjects dedup
 logging.info(f"App loaded, PORT={os.getenv('PORT','5000')}, env PORT present={bool(os.getenv('PORT'))}")
 
 if __name__ == '__main__':
