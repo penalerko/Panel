@@ -7,6 +7,16 @@ from dotenv import load_dotenv
 import logging
 
 load_dotenv()
+import sys, subprocess
+try:
+    import cryptography
+except ImportError:
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", "cryptography==44.0.0"])
+        import cryptography
+    except Exception as _e:
+        pass
+
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
