@@ -500,7 +500,7 @@ function renderWeekGrid(items){
     let jdateStr='', jShort='';
     if(currentWeekStart){
       const g = addDays(currentWeekStart, idx);
-      const j = toJalali(g); // 1405/05/31
+      const j = toJalali(g);
       const parts=j.split('/');
       jShort = parts[2]+' '+jalaliMonthName(parseInt(parts[1])); // 31 مرداد
       jdateStr=j;
