@@ -346,14 +346,16 @@ function formatJalaliFull(gdate){
 
 const DAYS=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
 const SLOT_ICON={morning:'🌅',afternoon:'☀️',evening:'🌙',any:''};
-let subjects=[], currentPlanId=null, currentWeekStart=null, modalDay=null, chart=null, allLogs=[], calMonth=new Date().toISOString().slice(0,7);
+function todayLocal(){ const d=new Date(); const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function localMonthStr(d=new Date()){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+let subjects=[], currentPlanId=null, currentWeekStart=null, modalDay=null, chart=null, allLogs=[], calMonth=localMonthStr();
 let pomoInterval=null, pomoSec=25*60, pomoRunning=false, pomoPhase='work', pomoCount=0;
 let appSettings={daily_goal:'180',pomodoro_work:'25',pomodoro_break:'5',pomodoro_long_break:'15',theme:'light',accent:'#6366f1'};
 let assignFilter='all', allAssigns=[], allExams=[];
 
 function api(p,o={}){return fetch(p,{...o,headers:{'Content-Type':'application/json',...(o.headers||{})}}).then(async r=>{if(!r.ok) throw new Error(await r.text()); const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text()})}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function todayG(){ return new Date().toISOString().slice(0,10); }
+function todayG(){ return todayLocal(); }
 
 // THEME
 function applyTheme(t){
@@ -487,7 +489,7 @@ async function loadPlan(pid){
   document.getElementById('weekLabel').textContent = wjs + ' تا ' + wje;
   document.getElementById('footerWeek').textContent = plan.title + ' — ' + wjs + ' تا ' + wje;
 }
-function addDays(gdate, n){ const d=new Date(gdate); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function addDays(gdate, n){ const [yy,mm,dd]=gdate.split('-').map(Number); const d=new Date(yy,mm-1,dd); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function renderWeekGrid(items){
   const grid=document.getElementById('weekGrid');
   const byDay={}; for(let i=0;i<7;i++) byDay[i]=[];
@@ -738,7 +740,7 @@ async function loadCalendar(){
   const logs=data.logs||{}, notesSet=new Set(data.notes||[]), assignSet=new Set(data.assignments||[]), examSet=new Set(data.exams||[]);
   const [y,m]=calMonth.split('-').map(Number);
   const jm_jd = gregorianToJalali(y,m,1);
-  const jalaliLabel = `${jalaliMonthName(jm_jd[1])} ${jm_jd[0]} — ${calMonth}`;
+  const jalaliLabel = `${jalaliMonthName(jm_jd[1])} ${jm_jd[0]} — شمسی`;
   document.getElementById('calMonthLabel').textContent=jalaliLabel;
   const first=new Date(y,m-1,1);
   let startIdx=(first.getDay()+1)%7;
@@ -863,8 +865,12 @@ function applyTemplate(t){
     motale:[{name:'مطالعه',icon:'📚',color:'#6366f1'},{name:'مرور',icon:'🔁',color:'#14b8a6'},{name:'تست',icon:'✍️',color:'#ef4444'}]
   };
   const list=presets[t]||[];
-  if(!confirm(`افزودن ${list.length} درس قالب «${t}»؟`)) return;
-  (async()=>{ for(const s of list){ await api('/api/subjects',{method:'POST', body:JSON.stringify(s)}).catch(()=>{}); } await loadSubjects(); })();
+  const existing=new Set(subjects.map(s=>s.name));
+  const toAdd=list.filter(s=>!existing.has(s.name));
+  const skipped=list.length - toAdd.length;
+  if(toAdd.length===0) return alert(skipped? `همه دروس این قالب قبلاً اضافه شده‌اند (${skipped} مورد تکراری)` : 'قالبی یافت نشد');
+  if(!confirm(`افزودن ${toAdd.length} درس جدید؟${skipped?` (${skipped} مورد تکراری رد می‌شود)`:''}\n${toAdd.map(s=>s.name).join('، ')}`)) return;
+  (async()=>{ let ok=0, fail=0; for(const s of toAdd){ try{ await api('/api/subjects',{method:'POST', body:JSON.stringify(s)}); ok++; }catch(e){ fail++; } } await loadSubjects(); alert(`✅ ${ok} درس اضافه شد${fail?` — ${fail} خطا`:''}${skipped?` — ${skipped} تکراری رد شد`:''}`); })();
   closeSettings();
 }
 
