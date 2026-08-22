@@ -43,3 +43,5 @@ railway up
 - `POST /api/plans/<id>/items` و `PATCH/DELETE /api/plan-items/<id>`
 - `GET/POST /api/logs` و `DELETE /api/logs/<id>`
 - `GET /api/stats`
+
+<!-- trigger: 1787419054 -->
