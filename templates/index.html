@@ -3,32 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>پلنر هفتگی مطالعه — نسخه ۲</title>
+<title>پلنر هفتگی — نسخه ۳ شمسی</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <script>tailwind.config={darkMode:'class'}</script>
 <style>
 *{font-family:Vazirmatn,sans-serif}
-.day-col{min-height:140px}
-.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:.8rem}
+.day-col{min-height:150px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:.78rem;line-height:1.2}
 .glass{backdrop-filter:blur(12px)}
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
 .dark ::-webkit-scrollbar-thumb{background:#334155}
+.jalali{font-feature-settings:"ss01"}
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
-<!-- HEADER -->
 <header class="bg-white/80 dark:bg-slate-900/80 glass border-b dark:border-slate-800 sticky top-0 z-20">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
-    <div class="flex items-center gap-3">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-2 flex-wrap">
+    <div class="flex items-center gap-2 flex-wrap">
       <h1 class="text-xl font-black">📚 پلنر هفتگی</h1>
-      <span id="weekLabel" class="hidden md:inline bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full text-xs"></span>
+      <span id="todayJalali" class="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full text-xs font-bold"></span>
+      <span id="weekLabel" class="hidden md:inline bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-xs"></span>
       <span id="streakBadge" class="hidden bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 px-3 py-1 rounded-full text-xs font-bold">🔥 ۰ روز</span>
     </div>
     <div class="flex items-center gap-2">
       <span id="dbStatus" class="hidden sm:inline px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs">...</span>
-      <button onclick="toggleTheme()" id="themeBtn" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg">🌙</button>
+      <button onclick="toggleTheme()" id="themeBtn" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">🌙</button>
       <button onclick="openSettings()" class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center">⚙️</button>
     </div>
   </div>
@@ -36,10 +37,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-<!-- STATS ROW -->
+<!-- STATS -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-    <div class="text-xs text-slate-500 dark:text-slate-400">مطالعه این هفته</div>
+    <div class="text-xs text-slate-500">مطالعه این هفته</div>
     <div class="text-2xl font-black" id="statWeek">—</div>
     <div class="mt-2 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div id="weeklyProgressBar" class="h-full bg-indigo-500 rounded-full transition-all" style="width:0%"></div></div>
     <div class="text-[11px] text-slate-400 mt-1" id="weeklyProgressText">۰٪ از هدف</div>
@@ -50,9 +51,12 @@
     <div class="text-xs text-slate-400 mt-1" id="statPlan">—</div>
   </div>
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-    <div class="text-xs text-slate-500">پومودورو امروز</div>
-    <div class="text-2xl font-black" id="pomoToday">۰ × ۲۵د</div>
-    <div class="text-xs text-slate-400" id="pomoTotal">۰ دقیقه</div>
+    <div class="text-xs text-slate-500">امروز</div>
+    <div class="text-sm font-bold" id="statTodayJalali">—</div>
+    <div class="flex gap-2 mt-2 text-xs">
+      <span id="pendingAssignBadge" class="bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-2 py-1 rounded-full">📝 ۰ تکلیف</span>
+      <span id="upcomingExamBadge" class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">📝 ۰ امتحان</span>
+    </div>
   </div>
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800 flex flex-col justify-center">
     <div class="flex gap-2">
@@ -66,13 +70,12 @@
   </div>
 </div>
 
-<!-- CHART + POMODORO ROW -->
+<!-- CHART + POMO -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
   <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-    <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-sm">📈 روند ۲۸ روز اخیر</h3><span class="text-xs text-slate-400" id="chartHint"></span></div>
+    <div class="flex justify-between items-center mb-2"><h3 class="font-bold text-sm">📈 روند ۲۸ روز اخیر (شمسی)</h3><span class="text-xs text-slate-400" id="chartHint"></span></div>
     <canvas id="trendChart" height="90"></canvas>
   </div>
-  <!-- POMODORO -->
   <div class="bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-5 rounded-2xl shadow-lg flex flex-col">
     <div class="flex justify-between items-start">
       <h3 class="font-black text-sm">🍅 پومودورو</h3>
@@ -88,14 +91,15 @@
       <button onclick="pomoSkip()" class="bg-white/20 px-4 py-2.5 rounded-xl">⏭</button>
     </div>
     <div class="flex gap-1 mt-3 justify-center" id="pomoDots"></div>
+    <div class="text-center text-xs mt-2 opacity-80" id="pomoToday">۰ × ۲۵د — ۰ دقیقه امروز</div>
   </div>
 </div>
 
 <!-- GOALS -->
 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
-  <div class="flex justify-between items-center mb-3">
+  <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
     <h2 class="font-black">🎯 اهداف هفته</h2>
-    <div class="flex gap-2">
+    <div class="flex gap-2 flex-wrap">
       <select id="goalSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs"></select>
       <input id="goalMinutes" type="number" value="300" min="10" step="10" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-1.5 text-xs w-24" placeholder="دقیقه">
       <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold">+ هدف</button>
@@ -119,6 +123,61 @@
   <div id="subjectsList" class="flex flex-wrap gap-2"></div>
 </div>
 
+<!-- ASSIGNMENTS + EXAMS -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-black">📝 تکالیف</h2>
+      <span class="text-xs text-slate-400" id="assignCount"></span>
+    </div>
+    <div class="grid grid-cols-1 gap-2 mb-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+      <input id="assignTitle" placeholder="عنوان تکلیف *" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="assignSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs"></select>
+        <input id="assignDue" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      </div>
+      <div class="flex gap-2">
+        <select id="assignPriority" class="flex-1 border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs"><option value="1">🟢 کم</option><option value="2" selected>🟡 متوسط</option><option value="3">🔴 زیاد</option></select>
+        <input id="assignDesc" placeholder="توضیح (اختیاری)" class="flex-[2] border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-[11px] text-slate-400" id="assignDueJalali"></span>
+        <button onclick="addAssignment()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ افزودن تکلیف</button>
+      </div>
+    </div>
+    <div class="flex gap-2 mb-2">
+      <button onclick="filterAssign('all')" id="btnAssignAll" class="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-1.5 rounded-xl text-xs">همه</button>
+      <button onclick="filterAssign('pending')" id="btnAssignPending" class="flex-1 bg-slate-100 dark:bg-slate-800 py-1.5 rounded-xl text-xs">⏳ مانده</button>
+      <button onclick="filterAssign('done')" id="btnAssignDone" class="flex-1 bg-slate-100 dark:bg-slate-800 py-1.5 rounded-xl text-xs">✅ انجام‌شده</button>
+    </div>
+    <div id="assignList" class="space-y-2 max-h-80 overflow-auto pr-1"></div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-black">📅 امتحان‌ها</h2>
+      <span class="text-xs text-slate-400" id="examCount"></span>
+    </div>
+    <div class="grid grid-cols-1 gap-2 mb-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+      <input id="examTitle" placeholder="عنوان امتحان * (مثلا میان‌ترم ریاضی)" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      <div class="grid grid-cols-2 gap-2">
+        <select id="examSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs"></select>
+        <input id="examDate" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <input id="examTime" type="time" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+        <input id="examLocation" placeholder="مکان (کلاس ۳۰۱...)" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+      </div>
+      <div class="flex gap-2">
+        <input id="examDesc" placeholder="توضیح" class="flex-1 border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs">
+        <button onclick="addExam()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold">+ افزودن امتحان</button>
+      </div>
+      <span class="text-[11px] text-slate-400" id="examJalali"></span>
+    </div>
+    <div id="examList" class="space-y-2 max-h-80 overflow-auto pr-1"></div>
+  </div>
+</div>
+
 <!-- WEEK GRID -->
 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800 overflow-x-auto">
   <div class="flex justify-between items-center mb-3 min-w-[720px]">
@@ -129,17 +188,16 @@
     </div>
   </div>
   <div id="weekGrid" class="grid grid-cols-7 gap-2 min-w-[720px]"></div>
-  <div class="flex gap-2 mt-3 text-[11px] text-slate-400"><span>🌅 صبح</span><span>☀️ ظهر</span><span>🌙 عصر</span><span>— هر زمان</span></div>
+  <div class="flex gap-2 mt-3 text-[11px] text-slate-400"><span>🌅 صبح</span><span>☀️ ظهر</span><span>🌙 عصر</span><span>— هر زمان</span><span class="mr-auto">اولویت: 🔴 زیاد 🟡 متوسط 🟢 کم</span></div>
 </div>
 
 <!-- LOG + NOTES + CALENDAR -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-  <!-- LOG -->
   <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
     <h2 class="font-black mb-3">⏱️ ثبت مطالعه</h2>
     <div class="grid grid-cols-2 gap-2">
       <div><label class="text-[11px] text-slate-500">درس</label><select id="logSubject" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm w-full"></select></div>
-      <div><label class="text-[11px] text-slate-500">تاریخ</label><input id="logDate" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm w-full"></div>
+      <div><label class="text-[11px] text-slate-500">تاریخ <span class="text-indigo-500" id="logJalali"></span></label><input id="logDate" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm w-full"></div>
       <div><label class="text-[11px] text-slate-500">دقیقه</label><input id="logMinutes" type="number" min="1" value="60" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm w-full"></div>
       <div><label class="text-[11px] text-slate-500">حال‌وهوا</label>
         <select id="logMood" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm w-full">
@@ -155,12 +213,11 @@
     </div>
     <div id="logsList" class="mt-3 space-y-2 max-h-80 overflow-auto pr-1"></div>
   </div>
-  <!-- NOTES + CALENDAR -->
   <div class="space-y-4">
     <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border dark:border-slate-800">
       <div class="flex justify-between items-center mb-2">
         <h3 class="font-black text-sm">📝 یادداشت روزانه</h3>
-        <input id="noteDate" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-2 py-1 text-xs">
+        <div class="flex items-center gap-2"><span id="noteJalali" class="text-xs text-indigo-500"></span><input id="noteDate" type="date" class="border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-2 py-1 text-xs"></div>
       </div>
       <textarea id="noteContent" rows="4" placeholder="امروز چی یاد گرفتی؟ فردا چی باید بخونی؟" class="w-full border dark:border-slate-700 dark:bg-slate-800 rounded-xl px-3 py-2 text-sm"></textarea>
       <div class="flex gap-2 mt-2">
@@ -174,18 +231,18 @@
         <h3 class="font-black text-sm">🗓️ تقویم مطالعه</h3>
         <div class="flex gap-1 items-center">
           <button onclick="calShift(-1)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800">‹</button>
-          <span id="calMonthLabel" class="text-xs font-bold min-w-[90px] text-center"></span>
+          <span id="calMonthLabel" class="text-xs font-bold min-w-[130px] text-center"></span>
           <button onclick="calShift(1)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800">›</button>
         </div>
       </div>
       <div class="grid grid-cols-7 gap-1 text-[11px] text-center text-slate-400 mb-1"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
       <div id="calGrid" class="grid grid-cols-7 gap-1"></div>
-      <div class="flex gap-1 mt-2 text-[10px] text-slate-400 items-center"><span>کم</span><div class="flex gap-1"><span class="w-3 h-3 rounded bg-slate-100 dark:bg-slate-800"></span><span class="w-3 h-3 rounded bg-indigo-200"></span><span class="w-3 h-3 rounded bg-indigo-400"></span><span class="w-3 h-3 rounded bg-indigo-600"></span></div><span>زیاد</span><span class="mr-auto">📝 یادداشت</span></div>
+      <div class="flex flex-wrap gap-2 mt-2 text-[10px] text-slate-400 items-center"><span>کم</span><div class="flex gap-1"><span class="w-3 h-3 rounded bg-slate-100 dark:bg-slate-800 border"></span><span class="w-3 h-3 rounded bg-indigo-200"></span><span class="w-3 h-3 rounded bg-indigo-400"></span><span class="w-3 h-3 rounded bg-indigo-600"></span></div><span>زیاد</span><span class="flex items-center gap-1"><span class="w-2 h-2 bg-amber-400 rounded-full"></span>تکلیف</span><span class="flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span>امتحان</span><span class="mr-auto">📝 یادداشت</span></div>
     </div>
   </div>
 </div>
 
-<footer class="text-center text-xs text-slate-400 py-6">ساخته شده با 💜 — نسخه ۲ • <a href="https://github.com/penalerko/Panel" class="underline">GitHub</a> • <span id="footerWeek"></span></footer>
+<footer class="text-center text-xs text-slate-400 py-6">ساخته شده با 💜 — نسخه ۳ شمسی • <a href="https://github.com/penalerko/Panel" class="underline">GitHub</a> • <span id="footerWeek"></span></footer>
 </main>
 
 <!-- MODALS -->
@@ -235,14 +292,51 @@
 </div>
 
 <script>
+// ---------- Jalali conversion (same as backend, fast) ----------
+function gregorianToJalali(gy, gm, gd){
+  const g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
+  let gy2= gm>2 ? gy-1600 : gy-1601;
+  let gm2= gm>2 ? gm-3 : gm+9;
+  let g_day_no=365*gy2 + Math.floor((gy2+3)/4) - Math.floor((gy2+99)/100) + Math.floor((gy2+399)/400);
+  g_day_no += g_d_m[gm2] + gd -1;
+  if(gm2>1 && ((gy%4==0 && gy%100!=0) || gy%400==0)) g_day_no++;
+  let j_day_no=g_day_no-79;
+  let j_np=Math.floor(j_day_no/12053);
+  j_day_no%=12053;
+  let jy=979+33*j_np+4*Math.floor(j_day_no/1461);
+  j_day_no%=1461;
+  if(j_day_no>=366){ jy+=Math.floor((j_day_no-1)/365); j_day_no=(j_day_no-1)%365; }
+  let jm=1;
+  for(let i=1;i<=12;i++){
+    let days = i<=6 ? 31 : 30;
+    if(i==12){ let r=jy%33; let leap=[1,5,9,13,17,22,26,30].includes(r); days=leap?30:29; }
+    if(j_day_no>=days){ j_day_no-=days; jm++; } else break;
+  }
+  return [jy,jm,j_day_no+1];
+}
+function toJalali(gdate){
+  if(!gdate) return "";
+  try{ const [y,m,d]=gdate.split("-").map(Number); const [jy,jm,jd]=gregorianToJalali(y,m,d); return `${jy}/${String(jm).padStart(2,'0')}/${String(jd).padStart(2,'0')}`; }catch(e){ return gdate; }
+}
+function jalaliMonthName(jm){
+  const names=["","فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
+  return names[jm]||"";
+}
+function formatJalaliFull(gdate){
+  if(!gdate) return "";
+  try{ const [y,m,d]=gdate.split("-").map(Number); const [jy,jm,jd]=gregorianToJalali(y,m,d); return `${jd} ${jalaliMonthName(jm)} ${jy}`; }catch(e){ return gdate; }
+}
+
 const DAYS=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
 const SLOT_ICON={morning:'🌅',afternoon:'☀️',evening:'🌙',any:''};
-let subjects=[], currentPlanId=null, modalDay=null, chart=null, allLogs=[], calMonth=new Date().toISOString().slice(0,7);
+let subjects=[], currentPlanId=null, currentWeekStart=null, modalDay=null, chart=null, allLogs=[], calMonth=new Date().toISOString().slice(0,7);
 let pomoInterval=null, pomoSec=25*60, pomoRunning=false, pomoPhase='work', pomoCount=0;
 let appSettings={daily_goal:'180',pomodoro_work:'25',pomodoro_break:'5',pomodoro_long_break:'15',theme:'light',accent:'#6366f1'};
+let assignFilter='all', allAssigns=[], allExams=[];
 
 function api(p,o={}){return fetch(p,{...o,headers:{'Content-Type':'application/json',...(o.headers||{})}}).then(async r=>{if(!r.ok) throw new Error(await r.text()); const ct=r.headers.get('content-type')||''; return ct.includes('json')?r.json():r.text()})}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function todayG(){ return new Date().toISOString().slice(0,10); }
 
 // THEME
 function applyTheme(t){
@@ -260,18 +354,11 @@ function toggleTheme(){
   api('/api/settings',{method:'PUT',body:JSON.stringify({theme:next})}).catch(()=>{});
 }
 async function loadSettings(){
-  try{
-    const s=await api('/api/settings');
-    appSettings={...appSettings, ...s};
-    localStorage.setItem('planner_settings', JSON.stringify(appSettings));
-  }catch(e){
-    try{ appSettings={...appSettings, ...JSON.parse(localStorage.getItem('planner_settings')||'{}')} }catch(_){}
-  }
-  const localTheme=localStorage.getItem('planner_theme');
-  if(localTheme) appSettings.theme=localTheme;
+  try{ const s=await api('/api/settings'); appSettings={...appSettings, ...s}; localStorage.setItem('planner_settings', JSON.stringify(appSettings)); }
+  catch(e){ try{ appSettings={...appSettings, ...JSON.parse(localStorage.getItem('planner_settings')||'{}')} }catch(_){} }
+  const lt=localStorage.getItem('planner_theme'); if(lt) appSettings.theme=lt;
   applyTheme(appSettings.theme);
   if(appSettings.accent) document.documentElement.style.setProperty('--accent', appSettings.accent);
-  // fill settings modal inputs
   document.getElementById('setDailyGoal').value=appSettings.daily_goal;
   document.getElementById('setAccent').value=appSettings.accent||'#6366f1';
   document.getElementById('setPomoWork').value=appSettings.pomodoro_work;
@@ -295,9 +382,8 @@ async function saveSettings(){
 }
 async function resetSettings(){localStorage.clear(); location.reload()}
 
-// STATUS
 async function refreshStatus(){
-  try{ const h=await api('/health'); const el=document.getElementById('dbStatus'); const ok=h.db==='connected'; el.textContent= ok?'✅ دیتابیس وصل':'⚠️ '+ (h.warning||h.db||''); el.className='hidden sm:inline px-3 py-1 rounded-full text-xs '+(ok?'bg-emerald-100 dark:bg-emerald-900 text-emerald-700':'bg-amber-100 text-amber-700');}
+  try{ const h=await api('/health'); const el=document.getElementById('dbStatus'); const ok=h.db==='connected'; el.textContent= ok?'✅ دیتابیس وصل':'⚠️ '+(h.warning||h.db||''); el.className='hidden sm:inline px-3 py-1 rounded-full text-xs '+(ok?'bg-emerald-100 dark:bg-emerald-900 text-emerald-700':'bg-amber-100 text-amber-700');}
   catch(e){ const el=document.getElementById('dbStatus'); el.textContent='❌ خطا'; el.className='hidden sm:inline px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs';}
 }
 
@@ -318,21 +404,20 @@ function renderSubjects(){
 }
 function fillSelects(){
   const opts=subjects.map(s=>`<option value="${s.id}">${s.icon} ${esc(s.name)}</option>`).join('');
-  const all='<option value="">— انتخاب —</option>'+opts;
+  const optsWithEmpty='<option value="">— انتخاب —</option>'+opts;
   document.getElementById('logSubject').innerHTML=opts;
   document.getElementById('modalSubject').innerHTML=opts;
   document.getElementById('goalSubject').innerHTML='<option value="">🎯 هدف کلی هفتگی</option>'+opts;
   document.getElementById('pomoSubject').innerHTML='<option value="">—</option>'+opts;
   document.getElementById('logFilterSubject').innerHTML='<option value="">همه دروس</option>'+opts;
+  document.getElementById('assignSubject').innerHTML='<option value="">— بدون درس —</option>'+opts;
+  document.getElementById('examSubject').innerHTML='<option value="">— بدون درس —</option>'+opts;
 }
 async function addSubject(){
   const name=document.getElementById('newSubjectName').value.trim();
   if(!name) return alert('نام درس را وارد کن');
-  const payload={name, color:document.getElementById('newSubjectColor').value, icon:document.getElementById('newSubjectIcon').value||'📚'};
-  // daily_goal via settings? pass via extra call? app.py subjects doesn't have daily_goal yet, but migration does - handle via PUT after
-  const s=await api('/api/subjects',{method:'POST', body:JSON.stringify(payload)});
-  const goal=document.getElementById('newSubjectGoal').value;
-  if(goal && +goal!==60){ try{ await api('/api/subjects/'+s.id,{method:'PUT', body:JSON.stringify({...s, daily_goal:+goal})}); }catch(e){} }
+  const payload={name, color:document.getElementById('newSubjectColor').value, icon:document.getElementById('newSubjectIcon').value||'📚', daily_goal: parseInt(document.getElementById('newSubjectGoal').value)||60};
+  await api('/api/subjects',{method:'POST', body:JSON.stringify(payload)});
   document.getElementById('newSubjectName').value='';
   await loadSubjects(); await refreshStats();
 }
@@ -342,59 +427,53 @@ async function editSubject(id){
   const color=prompt('رنگ (hex):', s.color) || s.color;
   const icon=prompt('آیکون:', s.icon) || s.icon;
   const goal=prompt('هدف روزانه (دقیقه):', s.daily_goal||60) || s.daily_goal;
-  await api('/api/subjects/'+id,{method:'PUT', body:JSON.stringify({name:name.trim()||s.name, color, icon, daily_goal:goal})});
+  await api('/api/subjects/'+id,{method:'PUT', body:JSON.stringify({name:name.trim()||s.name, color, icon, daily_goal:parseInt(goal)||60})});
   await loadSubjects();
 }
-async function delSubject(id){ if(!confirm('حذف شود؟ همه برنامه‌ها و لاگ‌های این درس هم حذف میشن!')) return; await api('/api/subjects/'+id,{method:'DELETE'}); await loadSubjects(); await loadPlans(); await refreshStats(); await loadLogs(); }
+async function delSubject(id){ if(!confirm('حذف شود؟ همه برنامه‌ها و لاگ‌های این درس هم حذف میشن!')) return; await api('/api/subjects/'+id,{method:'DELETE'}); await loadSubjects(); await loadPlans(); await refreshStats(); await loadLogs(); await loadAssignments(); await loadExams(); }
 
 // PLANS
 async function loadPlans(){
   let plans=[];
   try{ plans=await api('/api/plans'); }catch(e){ plans=[]; }
   const sel=document.getElementById('planSelect');
-  if(!plans.length){ sel.innerHTML='<option>برنامه‌ای نیست</option>'; renderWeekGrid([]); return; }
-  sel.innerHTML=plans.map(p=>`<option value="${p.id}">${esc(p.title)} (${p.week_start} تا ${p.week_end})</option>`).join('');
+  if(!plans.length){ sel.innerHTML='<option>برنامه‌ای نیست</option>'; renderWeekGrid([]); document.getElementById('weekLabel').textContent='—'; return; }
+  sel.innerHTML=plans.map(p=>`<option value="${p.id}">${esc(p.title)} (${p.week_start_jalali||toJalali(p.week_start)} تا ${p.week_end_jalali||toJalali(p.week_end)})</option>`).join('');
   if(!currentPlanId || !plans.find(p=>p.id==currentPlanId)) currentPlanId=plans[0].id;
   sel.value=currentPlanId;
   await loadPlan(currentPlanId);
 }
 async function createPlan(){
-  try{
-    const p=await api('/api/plans',{method:'POST', body:JSON.stringify({})});
-    await loadPlans(); document.getElementById('planSelect').value=p.id; await loadPlan(p.id);
-  }catch(e){ try{const j=JSON.parse(e.message); if(j.existing_id){alert('برای این هفته برنامه وجود دارد'); await loadPlan(j.existing_id)} else alert(e.message)}catch(_){alert(e.message)} }
+  try{ const p=await api('/api/plans',{method:'POST', body:JSON.stringify({})}); await loadPlans(); document.getElementById('planSelect').value=p.id; await loadPlan(p.id); }
+  catch(e){ try{const j=JSON.parse(e.message); if(j.existing_id){alert('برای این هفته برنامه وجود دارد'); await loadPlan(j.existing_id)} else alert(e.message)}catch(_){alert(e.message)} }
 }
 async function deletePlan(){ if(!currentPlanId) return; if(!confirm('حذف برنامه این هفته؟')) return; await api('/api/plans/'+currentPlanId,{method:'DELETE'}); currentPlanId=null; await loadPlans(); }
 async function copyLastWeek(){
-  // fetch all plans, find previous week, copy its items into current week
   const plans=await api('/api/plans');
   if(plans.length<1) return alert('هیچ برنامه‌ای برای کپی نیست');
-  // create current week if not exists
   let curId=currentPlanId;
-  if(!curId){
-    const p=await api('/api/plans',{method:'POST', body:JSON.stringify({})}).catch(()=>null);
-    if(p) curId=p.id; else return;
-  }
-  // pick the most recent plan that is NOT curId
+  if(!curId){ const p=await api('/api/plans',{method:'POST', body:JSON.stringify({})}).catch(()=>null); if(p) curId=p.id; else return; }
   const src = plans.find(p=>p.id!=curId) || plans[0];
   const srcPlan=await api('/api/plans/'+src.id);
   for(const it of (srcPlan.items||[])){
-    await api(`/api/plans/${curId}/items`,{method:'POST', body:JSON.stringify({subject_id:it.subject_id, day_of_week:it.day_of_week, planned_minutes:it.planned_minutes, note:it.note||''})}).catch(()=>{});
+    await api(`/api/plans/${curId}/items`,{method:'POST', body:JSON.stringify({subject_id:it.subject_id, day_of_week:it.day_of_week, planned_minutes:it.planned_minutes, note:it.note||'', time_slot:it.time_slot||'any', priority:it.priority||2})}).catch(()=>{});
   }
   await loadPlan(curId); alert('کپی شد از: '+src.title);
 }
 async function loadPlan(pid){
   if(!pid) return; currentPlanId=pid;
   const plan=await api('/api/plans/'+pid);
+  currentWeekStart=plan.week_start;
   renderWeekGrid(plan.items||[]);
-  document.getElementById('weekLabel').textContent = plan.week_start + ' تا ' + plan.week_end;
-  document.getElementById('footerWeek').textContent = plan.title;
+  const wjs=plan.week_start_jalali||toJalali(plan.week_start);
+  const wje=plan.week_end_jalali||toJalali(plan.week_end);
+  document.getElementById('weekLabel').textContent = wjs + ' تا ' + wje;
+  document.getElementById('footerWeek').textContent = plan.title + ' — ' + wjs + ' تا ' + wje;
 }
 function renderWeekGrid(items){
   const grid=document.getElementById('weekGrid');
   const byDay={}; for(let i=0;i<7;i++) byDay[i]=[];
   (items||[]).forEach(it=> byDay[it.day_of_week].push(it));
-  // sort by time_slot then priority
   const slotOrder={morning:0,afternoon:1,evening:2,any:3};
   for(let i=0;i<7;i++) byDay[i].sort((a,b)=> (slotOrder[a.time_slot||'any']-slotOrder[b.time_slot||'any']) || (b.priority||2)-(a.priority||2));
   grid.innerHTML=DAYS.map((d,idx)=>`
@@ -420,27 +499,116 @@ async function confirmAddItem(){
   const sid=document.getElementById('modalSubject').value;
   if(!sid) return alert('درس را انتخاب کن');
   await api(`/api/plans/${currentPlanId}/items`,{method:'POST', body:JSON.stringify({
-    subject_id:+sid, day_of_week:modalDay, planned_minutes:+document.getElementById('modalMinutes').value, note:document.getElementById('modalNote').value
+    subject_id:+sid, day_of_week:modalDay, planned_minutes:+document.getElementById('modalMinutes').value, note:document.getElementById('modalNote').value, time_slot:document.getElementById('modalSlot').value, priority:+document.getElementById('modalPriority').value
   })}).catch(e=>alert(e.message));
-  // update time_slot/priority via PATCH (if needed) - for now store in note fallback? We patched schema but not API yet, so keep working
-  closeModal(); await loadPlan(currentPlanId);
+  closeModal(); await loadPlan(currentPlanId); await refreshStats();
 }
 async function delItem(id){ await api('/api/plan-items/'+id,{method:'DELETE'}); await loadPlan(currentPlanId); }
 async function toggleDone(id,v){ await api('/api/plan-items/'+id,{method:'PATCH', body:JSON.stringify({is_done:!!v})}); await loadPlan(currentPlanId); await refreshStats(); }
 
+// ASSIGNMENTS
+async function loadAssignments(){
+  try{ allAssigns=await api('/api/assignments'); }catch(e){ allAssigns=[]; }
+  renderAssignments();
+}
+function renderAssignments(){
+  const list = assignFilter==='all' ? allAssigns : allAssigns.filter(a=>a.status===assignFilter);
+  document.getElementById('assignCount').textContent = `${allAssigns.filter(a=>a.status==='pending').length} مانده / ${allAssigns.length} کل`;
+  const el=document.getElementById('assignList');
+  if(!list.length){ el.innerHTML='<div class="text-xs text-slate-400 text-center py-3">تکلیفی نیست</div>'; return; }
+  el.innerHTML=list.map(a=>{
+    const isDone=a.status==='done';
+    const overdue=!isDone && a.due_date < todayG();
+    const dueJ=a.due_date_jalali||toJalali(a.due_date);
+    const subj=a.subject_name? `${a.subject_icon||'📚'} ${esc(a.subject_name)}` : 'عمومی';
+    return `<div class="flex gap-2 items-start p-2.5 rounded-xl border ${isDone?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 opacity-60':'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'} ${overdue?'ring-1 ring-red-400':''}">
+      <button onclick="toggleAssign(${a.id}, '${isDone?'pending':'done'}')" class="mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isDone?'bg-emerald-500 border-emerald-500 text-white':'border-slate-300 dark:border-slate-600'}">${isDone?'✓':''}</button>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-bold flex gap-2 flex-wrap"><span class="${isDone?'line-through':''}">${esc(a.title)}</span><span class="text-[10px] px-1.5 py-0.5 rounded-full ${a.priority==3?'bg-red-100 text-red-600':a.priority==1?'bg-emerald-100 text-emerald-600':'bg-amber-100 text-amber-600'}">${a.priority==3?'🔴':a.priority==2?'🟡':'🟢'}</span></div>
+        <div class="text-[11px] text-slate-500 flex gap-2 flex-wrap"><span>${subj}</span><span>📅 ${dueJ}</span>${overdue?'<span class="text-red-500">⚠️ گذشته</span>':''}</div>
+        ${a.description?`<div class="text-[11px] text-slate-400 mt-1">${esc(a.description)}</div>`:''}
+      </div>
+      <button onclick="delAssign(${a.id})" class="text-slate-400 hover:text-red-500 px-2">×</button>
+    </div>`;
+  }).join('');
+}
+function filterAssign(f){
+  assignFilter=f;
+  document.getElementById('btnAssignAll').className= f==='all' ? 'flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-1.5 rounded-xl text-xs' : 'flex-1 bg-slate-100 dark:bg-slate-800 py-1.5 rounded-xl text-xs';
+  document.getElementById('btnAssignPending').className= f==='pending' ? 'flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-1.5 rounded-xl text-xs' : 'flex-1 bg-slate-100 dark:bg-slate-800 py-1.5 rounded-xl text-xs';
+  document.getElementById('btnAssignDone').className= f==='done' ? 'flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-1.5 rounded-xl text-xs' : 'flex-1 bg-slate-100 dark:bg-slate-800 py-1.5 rounded-xl text-xs';
+  renderAssignments();
+}
+async function addAssignment(){
+  const title=document.getElementById('assignTitle').value.trim();
+  const due=document.getElementById('assignDue').value;
+  if(!title) return alert('عنوان تکلیف را وارد کن');
+  if(!due) return alert('تاریخ تحویل را انتخاب کن');
+  const payload={title, due_date:due, subject_id: document.getElementById('assignSubject').value||null, priority:+document.getElementById('assignPriority').value, description:document.getElementById('assignDesc').value};
+  if(payload.subject_id) payload.subject_id=+payload.subject_id; else payload.subject_id=null;
+  await api('/api/assignments',{method:'POST', body:JSON.stringify(payload)});
+  document.getElementById('assignTitle').value=''; document.getElementById('assignDesc').value='';
+  await loadAssignments(); await loadCalendar(); await refreshStats();
+}
+async function toggleAssign(id, status){ await api('/api/assignments/'+id,{method:'PATCH', body:JSON.stringify({status})}); await loadAssignments(); await loadCalendar(); await refreshStats(); }
+async function delAssign(id){ if(!confirm('حذف تکلیف؟')) return; await api('/api/assignments/'+id,{method:'DELETE'}); await loadAssignments(); await loadCalendar(); await refreshStats(); }
+
+// EXAMS
+async function loadExams(){
+  try{ allExams=await api('/api/exams'); }catch(e){ allExams=[]; }
+  renderExams();
+}
+function renderExams(){
+  document.getElementById('examCount').textContent = `${allExams.length} امتحان`;
+  const el=document.getElementById('examList');
+  if(!allExams.length){ el.innerHTML='<div class="text-xs text-slate-400 text-center py-3">امتحانی ثبت نشده</div>'; return; }
+  el.innerHTML=allExams.map(e=>{
+    const jdate=e.exam_date_jalali||toJalali(e.exam_date);
+    const dr=e.days_remaining;
+    let badge='';
+    if(dr===0) badge='<span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px]">امروز!</span>';
+    else if(dr===1) badge='<span class="bg-orange-500 text-white px-2 py-0.5 rounded-full text-[10px]">فردا</span>';
+    else if(dr>1 && dr<=7) badge=`<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px]">${dr} روز مانده</span>`;
+    else if(dr<0) badge=`<span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">${Math.abs(dr)} روز پیش</span>`;
+    else badge=`<span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-[10px]">${dr} روز مانده</span>`;
+    const subj=e.subject_name? `${e.subject_icon||'📚'} ${esc(e.subject_name)}` : 'عمومی';
+    return `<div class="p-3 rounded-xl border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+      <div class="flex justify-between items-start gap-2">
+        <div class="text-xs font-bold">${esc(e.title)}</div>
+        <button onclick="delExam(${e.id})" class="text-slate-400 hover:text-red-500">×</button>
+      </div>
+      <div class="text-[11px] text-slate-500 flex flex-wrap gap-2 mt-1"><span>${subj}</span><span>📅 ${jdate}</span>${e.exam_time?`<span>⏰ ${e.exam_time}</span>`:''}${e.location?`<span>📍 ${esc(e.location)}</span>`:''}</div>
+      ${e.description?`<div class="text-[11px] text-slate-400 mt-1">${esc(e.description)}</div>`:''}
+      <div class="mt-2">${badge}</div>
+    </div>`;
+  }).join('');
+}
+async function addExam(){
+  const title=document.getElementById('examTitle').value.trim();
+  const ed=document.getElementById('examDate').value;
+  if(!title) return alert('عنوان امتحان را وارد کن');
+  if(!ed) return alert('تاریخ امتحان را انتخاب کن');
+  const payload={title, exam_date:ed, subject_id: document.getElementById('examSubject').value||null, exam_time:document.getElementById('examTime').value||null, location:document.getElementById('examLocation').value||null, description:document.getElementById('examDesc').value||''};
+  if(payload.subject_id) payload.subject_id=+payload.subject_id; else payload.subject_id=null;
+  await api('/api/exams',{method:'POST', body:JSON.stringify(payload)});
+  document.getElementById('examTitle').value=''; document.getElementById('examDesc').value=''; document.getElementById('examLocation').value='';
+  await loadExams(); await loadCalendar(); await refreshStats();
+}
+async function delExam(id){ if(!confirm('حذف امتحان؟')) return; await api('/api/exams/'+id,{method:'DELETE'}); await loadExams(); await loadCalendar(); await refreshStats(); }
+
 // GOALS
 async function loadGoals(){
   try{
-    const ws=document.getElementById('weekLabel').textContent.split(' تا ')[0] || new Date().toISOString().slice(0,10);
+    const ws=currentWeekStart || todayG();
     const goals=await api('/api/goals/progress?week_start='+ws);
     const el=document.getElementById('goalsList');
     if(!goals.length){ el.innerHTML='<div class="text-xs text-slate-400 col-span-2 text-center py-2">هدفی ثبت نشده — از بالا هدف اضافه کن</div>'; return; }
     el.innerHTML=goals.map(g=>{
-      const name=g.subject_id ? (g.subject_name||g.subject_icon||'درس')+' '+(g.subject_name||'') : '🎯 هدف کلی';
-      const color=g.subject_id ? (g.subject_color||'#6366f1') : '#6366f1';
+      const color=g.subject_color||'#6366f1';
       const pct=Math.min(100,g.percent||0);
+      const name=g.subject_id ? `${g.subject_icon||'📚'} ${esc(g.subject_name||'درس')}` : '🎯 هدف کلی';
       return `<div class="border dark:border-slate-700 rounded-2xl p-3 flex flex-col gap-2">
-        <div class="flex justify-between items-center"><span class="text-xs font-bold">${g.subject_id? (g.subject_icon||'📚')+' '+(g.subject_name||'درس') : '🎯 هدف کلی'}</span><button onclick="delGoal(${g.id})" class="text-[11px] text-red-500">حذف</button></div>
+        <div class="flex justify-between items-center"><span class="text-xs font-bold">${name}</span><button onclick="delGoal(${g.id})" class="text-[11px] text-red-500">حذف</button></div>
         <div class="flex justify-between text-xs"><span>${g.actual||0} / ${g.target_minutes} دقیقه</span><span class="${pct>=100?'text-emerald-600':'text-slate-500'}">${pct}%</span></div>
         <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all" style="width:${pct}%; background:${color}"></div></div>
       </div>`;
@@ -451,14 +619,27 @@ async function addGoal(){
   const sid=document.getElementById('goalSubject').value;
   const mins=document.getElementById('goalMinutes').value;
   if(!mins || +mins<10) return alert('دقیقه هدف را وارد کن');
-  await api('/api/goals',{method:'POST', body:JSON.stringify({subject_id: sid? +sid : null, target_minutes:+mins})});
+  await api('/api/goals',{method:'POST', body:JSON.stringify({subject_id: sid? +sid : null, target_minutes:+mins, week_start: currentWeekStart||undefined})});
   await loadGoals(); await refreshStats();
 }
 async function delGoal(id){ if(!confirm('حذف هدف؟')) return; await api('/api/goals?id='+id,{method:'DELETE'}); await loadGoals(); }
 
 // LOGS
-document.getElementById('logDate').valueAsDate=new Date();
-document.getElementById('noteDate').valueAsDate=new Date();
+function updateJalaliHints(){
+  const lg=document.getElementById('logDate').value;
+  document.getElementById('logJalali').textContent = lg ? '— ' + toJalali(lg) : '';
+  const nd=document.getElementById('noteDate').value;
+  document.getElementById('noteJalali').textContent = nd ? toJalali(nd) : '';
+  const ad=document.getElementById('assignDue').value;
+  document.getElementById('assignDueJalali').textContent = ad ? 'شمسی: ' + toJalali(ad) : '';
+  const ed=document.getElementById('examDate').value;
+  document.getElementById('examJalali').textContent = ed ? 'شمسی: ' + toJalali(ed) : '';
+}
+document.getElementById('logDate').addEventListener('change', updateJalaliHints);
+document.getElementById('noteDate').addEventListener('change', ()=>{ updateJalaliHints(); loadNote(); });
+document.getElementById('assignDue').addEventListener('change', updateJalaliHints);
+document.getElementById('examDate').addEventListener('change', updateJalaliHints);
+
 async function addLog(){
   const sid=document.getElementById('logSubject').value;
   if(!sid) return alert('درس را انتخاب کن');
@@ -475,10 +656,10 @@ async function loadLogs(){
 function renderLogs(list){
   const el=document.getElementById('logsList');
   if(!list.length){ el.innerHTML='<div class="text-xs text-slate-400 text-center py-4">هنوز چیزی ثبت نشده</div>'; return; }
-  el.innerHTML=list.slice(0,60).map(l=>`
+  el.innerHTML=list.slice(0,80).map(l=>`
     <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs border dark:border-slate-700">
-      <span class="flex items-center gap-2"><span style="color:${l.color}">●</span> ${l.icon||'📚'} <b>${esc(l.name||'')}</b> • ${l.minutes}د • ${l.log_date} ${l.mood? ({great:'😍',good:'🙂',ok:'😐',tired:'😮‍💨'}[l.mood]||'') : ''} <span class="text-slate-400">${esc(l.description||'')}</span></span>
-      <button onclick="delLog(${l.id})" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg">حذف</button>
+      <span class="flex items-center gap-2 flex-wrap"><span style="color:${l.color}">●</span> ${l.icon||'📚'} <b>${esc(l.name||'')}</b> • ${l.minutes}د • <span class="jalali">${l.log_date_jalali||toJalali(l.log_date)}</span> <span class="text-slate-400 text-[10px]">(${l.log_date})</span> ${l.mood? ({great:'😍',good:'🙂',ok:'😐',tired:'😮‍💨'}[l.mood]||'') : ''} <span class="text-slate-400">${esc(l.description||'')}</span></span>
+      <button onclick="delLog(${l.id})" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg shrink-0">حذف</button>
     </div>`).join('');
 }
 function filterLogs(){
@@ -486,7 +667,7 @@ function filterLogs(){
   const sid=document.getElementById('logFilterSubject').value;
   let filtered=allLogs;
   if(sid) filtered=filtered.filter(l=> String(l.subject_id)===String(sid));
-  if(q) filtered=filtered.filter(l=> (l.name+l.description+l.log_date).toLowerCase().includes(q));
+  if(q) filtered=filtered.filter(l=> (l.name+l.description+l.log_date+(l.log_date_jalali||'')).toLowerCase().includes(q));
   renderLogs(filtered);
 }
 async function delLog(id){ await api('/api/logs/'+id,{method:'DELETE'}); await loadLogs(); await refreshStats(); await loadCalendar(); }
@@ -497,7 +678,7 @@ async function loadNote(){
   try{
     const n=await api('/api/notes?date='+d);
     document.getElementById('noteContent').value=n.content||'';
-    document.getElementById('noteHint').textContent=n.content? 'آخرین ذخیره: '+(n.updated_at||n.created_at||'') : 'یادداشتی برای این روز نیست';
+    document.getElementById('noteHint').textContent=n.content? 'آخرین ذخیره: '+(n.created_at||'')+' — شمسی: '+(n.note_date_jalali||toJalali(n.note_date)) : 'یادداشتی برای این روز نیست — '+toJalali(d);
   }catch(e){ document.getElementById('noteHint').textContent='خطا در بارگذاری'; }
 }
 async function saveNote(){
@@ -505,7 +686,7 @@ async function saveNote(){
   const c=document.getElementById('noteContent').value.trim();
   if(!c) return alert('متن یادداشت خالی است');
   await api('/api/notes',{method:'POST', body:JSON.stringify({note_date:d, content:c})});
-  document.getElementById('noteHint').textContent='✅ ذخیره شد';
+  document.getElementById('noteHint').textContent='✅ ذخیره شد — '+toJalali(d);
   await loadCalendar();
 }
 async function deleteNote(){
@@ -516,17 +697,17 @@ async function deleteNote(){
   document.getElementById('noteHint').textContent='حذف شد';
   await loadCalendar();
 }
-document.getElementById('noteDate').addEventListener('change', loadNote);
 
 // CALENDAR
 async function loadCalendar(){
-  const data=await api('/api/calendar?month='+calMonth).catch(()=>({logs:{},notes:[]}));
-  const logs=data.logs||{}, notesSet=new Set(data.notes||[]);
-  document.getElementById('calMonthLabel').textContent=calMonth;
+  const data=await api('/api/calendar?month='+calMonth).catch(()=>({logs:{},notes:[],assignments:[],exams:[]}));
+  const logs=data.logs||{}, notesSet=new Set(data.notes||[]), assignSet=new Set(data.assignments||[]), examSet=new Set(data.exams||[]);
   const [y,m]=calMonth.split('-').map(Number);
+  const jm_jd = gregorianToJalali(y,m,1);
+  const jalaliLabel = `${jalaliMonthName(jm_jd[1])} ${jm_jd[0]} — ${calMonth}`;
+  document.getElementById('calMonthLabel').textContent=jalaliLabel;
   const first=new Date(y,m-1,1);
-  // iran week starts Saturday: getDay 0=Sun ...6=Sat, we want Sat=0
-  let startIdx=(first.getDay()+1)%7; // Sat->0, Sun->1...
+  let startIdx=(first.getDay()+1)%7;
   const daysInMonth=new Date(y,m,0).getDate();
   const grid=document.getElementById('calGrid');
   let html='';
@@ -535,12 +716,16 @@ async function loadCalendar(){
     const ds=`${calMonth}-${String(d).padStart(2,'0')}`;
     const entry=logs[ds];
     const mins=entry? +entry.total : 0;
-    let bg='bg-slate-100 dark:bg-slate-800';
-    if(mins>0) bg= mins<30?'bg-indigo-200 dark:bg-indigo-800': mins<90?'bg-indigo-400 text-white': mins<180?'bg-indigo-600 text-white':'bg-violet-700 text-white';
+    let bg='bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
+    if(mins>0) bg= mins<30?'bg-indigo-100 dark:bg-indigo-900 border-indigo-200': mins<90?'bg-indigo-300 dark:bg-indigo-700 text-white border-indigo-400': mins<180?'bg-indigo-500 text-white border-indigo-600':'bg-violet-700 text-white border-violet-800';
     const hasNote=notesSet.has(ds);
-    const isToday= ds===new Date().toISOString().slice(0,10);
-    html+=`<button onclick="pickCalDate('${ds}')" class="cal-day ${bg} ${isToday?'ring-2 ring-indigo-500':''} border dark:border-slate-700 hover:opacity-80" title="${ds}: ${mins}د">
-      <span class="font-bold">${d}</span>${mins?`<span class="text-[10px]">${mins}د</span>`:''}${hasNote?'<span class="text-[10px]">📝</span>':''}
+    const hasAssign=assignSet.has(ds);
+    const hasExam=examSet.has(ds);
+    const isToday= ds===todayG();
+    const jd = gregorianToJalali(y,m,d)[2];
+    html+=`<button onclick="pickCalDate('${ds}')" class="cal-day ${bg} ${isToday?'ring-2 ring-indigo-500':''} border hover:opacity-80 relative" title="${ds} شمسی:${toJalali(ds)} - ${mins}د">
+      <span class="font-bold">${d}</span><span class="text-[10px] opacity-60">${jd}</span>${mins?`<span class="text-[10px] font-bold">${mins}د</span>`:''}
+      <span class="flex gap-0.5 mt-0.5">${hasNote?'<span class="text-[8px]">📝</span>':''}${hasAssign?'<span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>':''}${hasExam?'<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>':''}</span>
     </button>`;
   }
   grid.innerHTML=html;
@@ -548,8 +733,9 @@ async function loadCalendar(){
 function pickCalDate(ds){
   document.getElementById('logDate').value=ds;
   document.getElementById('noteDate').value=ds;
+  updateJalaliHints();
   loadNote();
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top: document.getElementById('logsList') ? document.getElementById('logsList').offsetTop - 80 : 0, behavior:'smooth'});
 }
 function calShift(dir){
   const [y,m]=calMonth.split('-').map(Number);
@@ -575,38 +761,28 @@ function pomoToggle(){
       pomoSec--;
       if(pomoSec<=0){
         clearInterval(pomoInterval); pomoRunning=false;
-        // bell
         try{ const a=new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_1a0e5ea14a.mp3'); a.volume=0.6; a.play().catch(()=>{});}catch(_){}
         if(pomoPhase==='work'){
-          // save pomodoro
           const sid=document.getElementById('pomoSubject').value;
           const dur=parseInt(appSettings.pomodoro_work||25);
           await api('/api/pomodoro',{method:'POST', body:JSON.stringify({subject_id: sid?+sid:null, duration_minutes:dur})}).catch(()=>{});
-          // also auto log minutes?
           pomoCount++;
           if(pomoCount%4===0){ pomoPhase='long'; pomoSec=parseInt(appSettings.pomodoro_long_break||15)*60; }
           else { pomoPhase='break'; pomoSec=parseInt(appSettings.pomodoro_break||5)*60; }
           if(Notification && Notification.permission==='granted') new Notification('پومودورو تمام شد — استراحت کن!');
-        } else {
-          pomoPhase='work'; pomoSec=parseInt(appSettings.pomodoro_work||25)*60;
-        }
+        } else { pomoPhase='work'; pomoSec=parseInt(appSettings.pomodoro_work||25)*60; }
         renderPomo(); refreshStats(); loadPomoStats();
-        // auto start next? keep paused
-        document.getElementById('pomoStartBtn').textContent='▶ شروع استراحت';
-        if(pomoPhase==='work') document.getElementById('pomoStartBtn').textContent='▶ شروع کار';
+        document.getElementById('pomoStartBtn').textContent= pomoPhase==='work' ? '▶ شروع کار' : '▶ شروع استراحت';
+        document.getElementById('pomoStartBtn').className='flex-1 bg-white text-indigo-600 font-black py-2.5 rounded-xl';
       }
       renderPomo();
     },1000);
   }
 }
 function pomoReset(){ clearInterval(pomoInterval); pomoRunning=false; pomoPhase='work'; pomoSec=parseInt(appSettings.pomodoro_work||25)*60; document.getElementById('pomoStartBtn').textContent='▶ شروع'; document.getElementById('pomoStartBtn').className='flex-1 bg-white text-indigo-600 font-black py-2.5 rounded-xl'; renderPomo(); }
-function pomoSkip(){ clearInterval(pomoInterval); pomoRunning=false; pomoSec=0; pomoToggle(); pomoToggle(); } // force next
+function pomoSkip(){ clearInterval(pomoInterval); pomoRunning=false; pomoSec=0; pomoToggle(); pomoToggle(); }
 async function loadPomoStats(){
-  try{
-    const d=await api('/api/pomodoro');
-    document.getElementById('pomoToday').textContent= `${d.today_count} × ${appSettings.pomodoro_work}د`;
-    document.getElementById('pomoTotal').textContent= `${d.today_minutes} دقیقه امروز`;
-  }catch(e){}
+  try{ const d=await api('/api/pomodoro'); document.getElementById('pomoToday').textContent= `${d.today_count} × ${appSettings.pomodoro_work}د — ${d.today_minutes} دقیقه امروز`; }catch(e){}
 }
 if('Notification' in window && Notification.permission==='default') Notification.requestPermission().catch(()=>{});
 
@@ -616,15 +792,19 @@ async function refreshStats(){
     const s=await api('/api/stats');
     document.getElementById('statWeek').textContent = s.week_total + ' دقیقه';
     document.getElementById('statTotal').textContent = s.total_all + ' دقیقه';
-    document.getElementById('statPlan').textContent = s.plan_id ? 'هفته '+s.week_start+' تا '+s.week_end : 'برنامه‌ای برای این هفته نیست';
+    document.getElementById('todayJalali').textContent = 'امروز ' + (s.today_jalali || toJalali(todayG()));
+    document.getElementById('statTodayJalali').textContent = s.today_jalali || toJalali(todayG());
+    document.getElementById('statPlan').textContent = s.plan_id ? (s.week_start_jalali||toJalali(s.week_start))+' تا '+(s.week_end_jalali||toJalali(s.week_end)) : 'برنامه‌ای برای این هفته نیست';
     document.getElementById('chartHint').textContent = s.streak ? `🔥 ${s.streak} روز متوالی` : '';
     document.getElementById('streakBadge').textContent = `🔥 ${s.streak||0} روز`;
     document.getElementById('streakBadge').classList.toggle('hidden', !s.streak);
+    document.getElementById('pendingAssignBadge').textContent = `📝 ${s.pending_assignments||0} تکلیف`;
+    document.getElementById('upcomingExamBadge').textContent = `📅 ${s.upcoming_exams||0} امتحان`;
+    currentWeekStart=s.week_start;
     const pct=Math.min(100, s.weekly_progress||0);
     document.getElementById('weeklyProgressBar').style.width = pct+'%';
     document.getElementById('weeklyProgressText').textContent = pct+'% از هدف هفتگی ('+(s.weekly_target||0)+'د)';
-    // chart
-    const labels=s.trend.map(t=>t.log_date.slice(5));
+    const labels=s.trend.map(t=> (t.log_date_jalali||toJalali(t.log_date)).slice(5));
     const data=s.trend.map(t=>t.total);
     if(chart) chart.destroy();
     chart=new Chart(document.getElementById('trendChart'),{
@@ -632,16 +812,14 @@ async function refreshStats(){
       data:{labels, datasets:[{label:'دقیقه', data, borderColor:(appSettings.accent||'#6366f1'), backgroundColor:(appSettings.accent||'#6366f1')+'18', fill:true, tension:0.35, pointRadius:3}]},
       options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:'rgba(0,0,0,0.04)'}}, x:{grid:{display:false}}}, responsive:true}
     });
-    // after stats also load goals
     await loadGoals();
   }catch(e){ console.error(e); }
 }
 
-// EXPORT
 async function exportJSON(){
   const data=await api('/api/export');
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='weekly-planner-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='weekly-planner-'+todayG()+'.json'; a.click();
 }
 function applyTemplate(t){
   const presets={
@@ -657,12 +835,20 @@ function applyTemplate(t){
 }
 
 // INIT
+document.getElementById('logDate').valueAsDate=new Date();
+document.getElementById('noteDate').valueAsDate=new Date();
+document.getElementById('assignDue').valueAsDate=new Date(new Date().getTime()+86400000*3);
+document.getElementById('examDate').valueAsDate=new Date(new Date().getTime()+86400000*7);
+updateJalaliHints();
+
 (async()=>{
   await loadSettings();
   await refreshStatus();
   await loadSubjects();
   await loadPlans();
   await loadLogs();
+  await loadAssignments();
+  await loadExams();
   await refreshStats();
   await loadCalendar();
   await loadPomoStats();
