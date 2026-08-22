@@ -944,8 +944,8 @@ def export_csv():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-# BUILD_ID 1787422844 - v3 jalali + assignments + exams
-# BUILD_ID 1787422844 - v3 jalali + assignments + exams
+# BUILD_ID 1787423951 - v3.1 full jalali all sections
+# BUILD_ID 1787423951 - v3.1 full jalali all sections
 logging.info(f"App loaded, PORT={os.getenv('PORT','5000')}, env PORT present={bool(os.getenv('PORT'))}")
 
 if __name__ == '__main__':
