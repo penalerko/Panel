@@ -705,6 +705,7 @@ def export_csv():
         return jsonify(error=str(e)), 500
 
 # Log startup
+# BUILD_ID 1787422340 - v2 force rebuild
 logging.info(f"App loaded, PORT={os.getenv('PORT','5000')}, env PORT present={bool(os.getenv('PORT'))}")
 
 if __name__ == '__main__':
