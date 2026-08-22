@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>پلنر هفتگی — نسخه ۳ شمسی</title>
+<title>پلنر هفتگی — نسخه ۳.۱ شمسی</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
@@ -259,7 +259,7 @@
   </div>
 </div>
 </div>
-<footer class="text-center text-xs text-slate-400 py-6">ساخته شده با 💜 — نسخه ۳ شمسی • <a href="https://github.com/penalerko/Panel" class="underline">GitHub</a> • <span id="footerWeek"></span></footer>
+<footer class="text-center text-xs text-slate-400 py-6">ساخته شده با 💜 — نسخه ۳.۱ شمسی • <a href="https://github.com/penalerko/Panel" class="underline">GitHub</a> • <span id="footerWeek"></span></footer>
 </main>
 
 <!-- MODALS -->
@@ -309,27 +309,27 @@
 </div>
 
 <script>
-// ---------- Jalali conversion (same as backend, fast) ----------
+// ---------- Jalali conversion (دقیق - Intl + fallback) ----------
 function gregorianToJalali(gy, gm, gd){
+  // دقیق‌ترین روش: Intl با تقویم شمسی (همه مرورگرهای جدید)
+  try{
+    const d=new Date(gy, gm-1, gd);
+    // en-CA-u-ca-persian برمی‌گرداند YYYY/MM/DD با اعداد انگلیسی
+    const fmt=new Intl.DateTimeFormat('en-CA-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric'});
+    const parts=fmt.formatToParts(d);
+    const get=t=>parts.find(p=>p.type===t).value;
+    return [parseInt(get('year')), parseInt(get('month')), parseInt(get('day'))];
+  }catch(e){}
+  // fallback: الگوریتم jalaali-js (صحیح)
   const g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
-  let gy2= gm>2 ? gy-1600 : gy-1601;
-  let gm2= gm>2 ? gm-3 : gm+9;
-  let g_day_no=365*gy2 + Math.floor((gy2+3)/4) - Math.floor((gy2+99)/100) + Math.floor((gy2+399)/400);
-  g_day_no += g_d_m[gm2] + gd -1;
-  if(gm2>1 && ((gy%4==0 && gy%100!=0) || gy%400==0)) g_day_no++;
-  let j_day_no=g_day_no-79;
-  let j_np=Math.floor(j_day_no/12053);
-  j_day_no%=12053;
-  let jy=979+33*j_np+4*Math.floor(j_day_no/1461);
-  j_day_no%=1461;
-  if(j_day_no>=366){ jy+=Math.floor((j_day_no-1)/365); j_day_no=(j_day_no-1)%365; }
-  let jm=1;
-  for(let i=1;i<=12;i++){
-    let days = i<=6 ? 31 : 30;
-    if(i==12){ let r=jy%33; let leap=[1,5,9,13,17,22,26,30].includes(r); days=leap?30:29; }
-    if(j_day_no>=days){ j_day_no-=days; jm++; } else break;
-  }
-  return [jy,jm,j_day_no+1];
+  let jy,jm,jd, gy2=(gm>2)?(gy+1):gy;
+  let days=355666+365*gy+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)+gd+g_d_m[gm-1];
+  jy=-1595+33*Math.floor(days/12053); days%=12053;
+  jy+=4*Math.floor(days/1461); days%=1461;
+  if(days>365){ jy+=Math.floor((days-1)/365); days=(days-1)%365; }
+  if(days<186){ jm=1+Math.floor(days/31); jd=1+days%31; }
+  else{ days-=186; jm=7+Math.floor(days/30); jd=1+days%30; }
+  return [jy,jm,jd];
 }
 function toJalali(gdate){
   if(!gdate) return "";
