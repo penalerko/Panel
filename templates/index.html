@@ -470,15 +470,28 @@ async function loadPlan(pid){
   document.getElementById('weekLabel').textContent = wjs + ' تا ' + wje;
   document.getElementById('footerWeek').textContent = plan.title + ' — ' + wjs + ' تا ' + wje;
 }
+function addDays(gdate, n){ const d=new Date(gdate); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
 function renderWeekGrid(items){
   const grid=document.getElementById('weekGrid');
   const byDay={}; for(let i=0;i<7;i++) byDay[i]=[];
   (items||[]).forEach(it=> byDay[it.day_of_week].push(it));
   const slotOrder={morning:0,afternoon:1,evening:2,any:3};
   for(let i=0;i<7;i++) byDay[i].sort((a,b)=> (slotOrder[a.time_slot||'any']-slotOrder[b.time_slot||'any']) || (b.priority||2)-(a.priority||2));
-  grid.innerHTML=DAYS.map((d,idx)=>`
+  grid.innerHTML=DAYS.map((d,idx)=>{
+    let jdateStr='', jShort='';
+    if(currentWeekStart){
+      const g = addDays(currentWeekStart, idx);
+      const j = toJalali(g); // 1405/05/31
+      const parts=j.split('/');
+      jShort = parts[2]+' '+jalaliMonthName(parseInt(parts[1])); // 31 مرداد
+      jdateStr=j;
+    }
+    return `
     <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 border dark:border-slate-700 day-col flex flex-col">
-      <div class="font-black text-xs text-center mb-2 flex justify-between items-center"><span>${d}</span><span class="text-[10px] bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded-full">${byDay[idx].reduce((a,b)=>a+(b.planned_minutes||0),0)}د</span></div>
+      <div class="text-center mb-2">
+        <div class="font-black text-xs flex justify-between items-center"><span>${d}</span><span class="text-[10px] bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded-full">${byDay[idx].reduce((a,b)=>a+(b.planned_minutes||0),0)}د</span></div>
+        ${jdateStr?`<div class="text-[11px] text-indigo-600 dark:text-indigo-300 font-bold mt-1">${jShort}</div><div class="text-[10px] text-slate-400">${jdateStr}</div>`:''}
+      </div>
       <div class="space-y-1.5 flex-1">
         ${byDay[idx].map(it=>`
           <div class="text-[11px] p-2 rounded-xl text-white flex justify-between items-center shadow-sm leading-tight" style="background:${it.color}; opacity:${it.is_done?0.55:1}; border-right:4px solid ${it.priority==3?'#ef4444':it.priority==1?'#22c55e':'#facc15'}">
@@ -490,7 +503,8 @@ function renderWeekGrid(items){
           </div>`).join('') || '<div class="text-[11px] text-slate-400 text-center py-4">— خالی —</div>'}
       </div>
       <button onclick="openModal(${idx})" class="w-full mt-2 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded-xl py-1.5 hover:bg-slate-50">+ افزودن</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function openModal(day){ modalDay=day; document.getElementById('modalDay').textContent='افزودن به '+DAYS[day]; document.getElementById('addItemModal').classList.remove('hidden');}
 function closeModal(){ document.getElementById('addItemModal').classList.add('hidden');}
@@ -656,11 +670,14 @@ async function loadLogs(){
 function renderLogs(list){
   const el=document.getElementById('logsList');
   if(!list.length){ el.innerHTML='<div class="text-xs text-slate-400 text-center py-4">هنوز چیزی ثبت نشده</div>'; return; }
-  el.innerHTML=list.slice(0,80).map(l=>`
-    <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs border dark:border-slate-700">
-      <span class="flex items-center gap-2 flex-wrap"><span style="color:${l.color}">●</span> ${l.icon||'📚'} <b>${esc(l.name||'')}</b> • ${l.minutes}د • <span class="jalali">${l.log_date_jalali||toJalali(l.log_date)}</span> <span class="text-slate-400 text-[10px]">(${l.log_date})</span> ${l.mood? ({great:'😍',good:'🙂',ok:'😐',tired:'😮‍💨'}[l.mood]||'') : ''} <span class="text-slate-400">${esc(l.description||'')}</span></span>
+  el.innerHTML=list.slice(0,80).map(l=>{
+    const jdate=l.log_date_jalali||toJalali(l.log_date);
+    return `
+    <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs border dark:border-slate-700" title="میلادی: ${l.log_date}">
+      <span class="flex items-center gap-2 flex-wrap"><span style="color:${l.color}">●</span> ${l.icon||'📚'} <b>${esc(l.name||'')}</b> • ${l.minutes}د • <b class="text-indigo-600 dark:text-indigo-300 jalali">${jdate}</b> ${l.mood? ({great:'😍',good:'🙂',ok:'😐',tired:'😮‍💨'}[l.mood]||'') : ''} <span class="text-slate-400">${esc(l.description||'')}</span></span>
       <button onclick="delLog(${l.id})" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-lg shrink-0">حذف</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function filterLogs(){
   const q=document.getElementById('logSearch').value.trim().toLowerCase();
@@ -723,8 +740,8 @@ async function loadCalendar(){
     const hasExam=examSet.has(ds);
     const isToday= ds===todayG();
     const jd = gregorianToJalali(y,m,d)[2];
-    html+=`<button onclick="pickCalDate('${ds}')" class="cal-day ${bg} ${isToday?'ring-2 ring-indigo-500':''} border hover:opacity-80 relative" title="${ds} شمسی:${toJalali(ds)} - ${mins}د">
-      <span class="font-bold">${d}</span><span class="text-[10px] opacity-60">${jd}</span>${mins?`<span class="text-[10px] font-bold">${mins}د</span>`:''}
+    html+=`<button onclick="pickCalDate('${ds}')" class="cal-day ${bg} ${isToday?'ring-2 ring-indigo-500':''} border hover:opacity-80 relative" title="شمسی: ${toJalali(ds)} — میلادی: ${ds} — ${mins}د">
+      <span class="font-black text-sm">${jd}</span><span class="text-[10px] opacity-70">${d}</span>${mins?`<span class="text-[10px] font-bold mt-0.5">${mins}د</span>`:''}
       <span class="flex gap-0.5 mt-0.5">${hasNote?'<span class="text-[8px]">📝</span>':''}${hasAssign?'<span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>':''}${hasExam?'<span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>':''}</span>
     </button>`;
   }
