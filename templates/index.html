@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پلنر هفتگی مطالعه</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<style>*{font-family:Vazirmatn,sans-serif} .day-col{min-height:120px}</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<header class="bg-white border-b sticky top-0 z-10">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <h1 class="text-xl font-bold">📚 پلنر هفتگی مطالعه</h1>
+    <div class="flex gap-2 text-sm">
+      <span id="weekLabel" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full"></span>
+      <span id="dbStatus" class="px-3 py-1 rounded-full bg-slate-100">...</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+<!-- آمار -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <div class="text-sm text-slate-500">مطالعه این هفته</div>
+    <div class="text-2xl font-bold" id="statWeek">- دقیقه</div>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <div class="text-sm text-slate-500">مجموع کل</div>
+    <div class="text-2xl font-bold" id="statTotal">- دقیقه</div>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <div class="text-sm text-slate-500">برنامه فعال</div>
+    <div class="text-sm font-bold" id="statPlan">-</div>
+    <button onclick="createPlan()" class="mt-2 text-xs bg-indigo-600 text-white px-3 py-1 rounded-lg">+ ساخت برنامه این هفته</button>
+  </div>
+</div>
+
+<div class="bg-white p-4 rounded-xl shadow-sm border">
+  <canvas id="trendChart" height="80"></canvas>
+</div>
+
+<!-- مدیریت دروس -->
+<div class="bg-white p-4 rounded-xl shadow-sm border">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="font-bold">📖 دروس</h2>
+    <div class="flex gap-2">
+      <input id="newSubjectName" placeholder="نام درس" class="border rounded-lg px-3 py-1 text-sm w-32">
+      <input id="newSubjectColor" type="color" value="#6366f1" class="w-8 h-8 rounded">
+      <input id="newSubjectIcon" placeholder="📚" class="border rounded-lg px-2 py-1 text-sm w-12 text-center">
+      <button onclick="addSubject()" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm">افزودن</button>
+    </div>
+  </div>
+  <div id="subjectsList" class="flex flex-wrap gap-2"></div>
+</div>
+
+<!-- جدول هفتگی -->
+<div class="bg-white p-4 rounded-xl shadow-sm border overflow-x-auto">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="font-bold">🗓️ برنامه هفتگی</h2>
+    <select id="planSelect" onchange="loadPlan(this.value)" class="border rounded-lg px-3 py-1 text-sm"></select>
+  </div>
+  <div id="weekGrid" class="grid grid-cols-7 gap-2 min-w-[700px]"></div>
+</div>
+
+<!-- ثبت مطالعه -->
+<div class="bg-white p-4 rounded-xl shadow-sm border">
+  <h2 class="font-bold mb-3">⏱️ ثبت مطالعه</h2>
+  <div class="flex flex-wrap gap-2 items-end">
+    <div>
+      <label class="text-xs text-slate-500">درس</label>
+      <select id="logSubject" class="border rounded-lg px-3 py-2 text-sm block"></select>
+    </div>
+    <div>
+      <label class="text-xs text-slate-500">تاریخ</label>
+      <input id="logDate" type="date" class="border rounded-lg px-3 py-2 text-sm block">
+    </div>
+    <div>
+      <label class="text-xs text-slate-500">دقیقه</label>
+      <input id="logMinutes" type="number" min="1" value="60" class="border rounded-lg px-3 py-2 text-sm w-24 block">
+    </div>
+    <div class="flex-1">
+      <label class="text-xs text-slate-500">توضیح</label>
+      <input id="logDesc" placeholder="مثلا فصل ۲" class="border rounded-lg px-3 py-2 text-sm w-full block">
+    </div>
+    <button onclick="addLog()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm">ثبت</button>
+  </div>
+  <div id="logsList" class="mt-4 space-y-2 max-h-64 overflow-auto"></div>
+</div>
+
+<!-- افزودن آیتم به برنامه -->
+<div id="addItemModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-20">
+  <div class="bg-white p-5 rounded-xl w-96 space-y-3">
+    <h3 class="font-bold" id="modalDay">افزودن به روز</h3>
+    <select id="modalSubject" class="border rounded-lg px-3 py-2 w-full"></select>
+    <input id="modalMinutes" type="number" value="60" class="border rounded-lg px-3 py-2 w-full" placeholder="دقیقه">
+    <input id="modalNote" placeholder="یادداشت" class="border rounded-lg px-3 py-2 w-full">
+    <div class="flex gap-2">
+      <button onclick="confirmAddItem()" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg">افزودن</button>
+      <button onclick="closeModal()" class="flex-1 bg-slate-200 py-2 rounded-lg">انصراف</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const DAYS = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+let subjects=[], currentPlanId=null, modalDay=null, chart=null;
+
+async function api(p, o={}){ 
+  const r=await fetch(p, {...o, headers:{'Content-Type':'application/json',...(o.headers||{})}});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function refreshStatus(){
+  try{ const h=await api('/health'); document.getElementById('dbStatus').textContent='✅ دیتابیس وصل'; document.getElementById('dbStatus').className='px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs';}
+  catch(e){ document.getElementById('dbStatus').textContent='❌ خطا دیتابیس'; document.getElementById('dbStatus').className='px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs';}
+}
+
+async function loadSubjects(){
+  subjects = await api('/api/subjects');
+  renderSubjects();
+  fillSelects();
+}
+function renderSubjects(){
+  const el=document.getElementById('subjectsList');
+  el.innerHTML = subjects.map(s=>`
+    <span class="px-3 py-1 rounded-full text-white text-sm flex items-center gap-2" style="background:${s.color}">
+      ${s.icon} ${s.name}
+      <button onclick="delSubject(${s.id})" class="bg-white/30 rounded-full w-5 h-5 text-xs">×</button>
+    </span>`).join('') || '<span class="text-sm text-slate-400">هنوز درسی اضافه نشده</span>';
+}
+function fillSelects(){
+  const opts = subjects.map(s=>`<option value="${s.id}">${s.icon} ${s.name}</option>`).join('');
+  document.getElementById('logSubject').innerHTML=opts;
+  document.getElementById('modalSubject').innerHTML=opts;
+}
+async function addSubject(){
+  const name=document.getElementById('newSubjectName').value.trim();
+  if(!name) return alert('نام درس را وارد کن');
+  await api('/api/subjects',{method:'POST', body:JSON.stringify({name, color:document.getElementById('newSubjectColor').value, icon:document.getElementById('newSubjectIcon').value||'📚'})});
+  document.getElementById('newSubjectName').value='';
+  await loadSubjects();
+}
+async function delSubject(id){
+  if(!confirm('حذف شود؟')) return;
+  await api('/api/subjects/'+id,{method:'DELETE'});
+  await loadSubjects(); await loadPlans(); await refreshStats();
+}
+
+async function loadPlans(){
+  const plans=await api('/api/plans');
+  const sel=document.getElementById('planSelect');
+  sel.innerHTML = plans.map(p=>`<option value="${p.id}">${p.title} (${p.week_start} تا ${p.week_end})</option>`).join('') || '<option>برنامه‌ای نیست</option>';
+  if(plans.length){ currentPlanId=plans[0].id; sel.value=currentPlanId; await loadPlan(currentPlanId); }
+  else renderWeekGrid([]);
+}
+async function createPlan(){
+  try{ const p=await api('/api/plans',{method:'POST', body:JSON.stringify({})}); await loadPlans(); document.getElementById('planSelect').value=p.id; await loadPlan(p.id); }
+  catch(e){ alert(e.message); }
+}
+async function loadPlan(pid){
+  if(!pid) return; currentPlanId=pid;
+  const plan=await api('/api/plans/'+pid);
+  renderWeekGrid(plan.items||[]);
+  document.getElementById('weekLabel').textContent = plan.week_start + ' تا ' + plan.week_end;
+}
+function renderWeekGrid(items){
+  const grid=document.getElementById('weekGrid');
+  // group by day
+  const byDay={}; for(let i=0;i<7;i++) byDay[i]=[];
+  (items||[]).forEach(it=> byDay[it.day_of_week].push(it));
+  grid.innerHTML = DAYS.map((d,idx)=>`
+    <div class="bg-slate-50 rounded-xl p-2 border day-col">
+      <div class="font-bold text-sm text-center mb-2">${d}</div>
+      <div class="space-y-1">
+        ${byDay[idx].map(it=>`
+          <div class="text-xs p-2 rounded-lg text-white flex justify-between items-center" style="background:${it.color}; opacity:${it.is_done?0.6:1}">
+            <span>${it.icon} ${it.name} - ${it.planned_minutes}د</span>
+            <span class="flex gap-1">
+              <button onclick="toggleDone(${it.id}, ${!it.is_done})" class="bg-white/30 rounded px-1">${it.is_done?'↩':'✓'}</button>
+              <button onclick="delItem(${it.id})" class="bg-white/30 rounded px-1">×</button>
+            </span>
+          </div>`).join('')}
+      </div>
+      <button onclick="openModal(${idx})" class="w-full mt-2 text-xs bg-white border rounded-lg py-1">+ افزودن</button>
+    </div>`).join('');
+}
+function openModal(day){ modalDay=day; document.getElementById('modalDay').textContent='افزودن به '+DAYS[day]; document.getElementById('addItemModal').classList.remove('hidden');}
+function closeModal(){ document.getElementById('addItemModal').classList.add('hidden');}
+async function confirmAddItem(){
+  await api(`/api/plans/${currentPlanId}/items`,{method:'POST', body:JSON.stringify({
+    subject_id: +document.getElementById('modalSubject').value,
+    day_of_week: modalDay,
+    planned_minutes: +document.getElementById('modalMinutes').value,
+    note: document.getElementById('modalNote').value
+  })});
+  closeModal(); await loadPlan(currentPlanId);
+}
+async function delItem(id){ await api('/api/plan-items/'+id,{method:'DELETE'}); await loadPlan(currentPlanId); }
+async function toggleDone(id, v){ await api('/api/plan-items/'+id,{method:'PATCH', body:JSON.stringify({is_done: v})}); await loadPlan(currentPlanId); await refreshStats(); }
+
+// logs
+document.getElementById('logDate').valueAsDate = new Date();
+async function addLog(){
+  await api('/api/logs',{method:'POST', body:JSON.stringify({
+    subject_id:+document.getElementById('logSubject').value,
+    log_date: document.getElementById('logDate').value,
+    minutes:+document.getElementById('logMinutes').value,
+    description: document.getElementById('logDesc').value
+  })});
+  document.getElementById('logDesc').value='';
+  await loadLogs(); await refreshStats();
+}
+async function loadLogs(){
+  const logs=await api('/api/logs');
+  document.getElementById('logsList').innerHTML = logs.slice(0,30).map(l=>`
+    <div class="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2 text-sm border">
+      <span><span style="color:${l.color}">●</span> ${l.icon} ${l.name} - ${l.minutes} دقیقه - ${l.log_date} <span class="text-slate-400">${l.description||''}</span></span>
+      <button onclick="delLog(${l.id})" class="text-red-500 text-xs">حذف</button>
+    </div>`).join('') || '<div class="text-xs text-slate-400">هنوز چیزی ثبت نشده</div>';
+}
+async function delLog(id){ await api('/api/logs/'+id,{method:'DELETE'}); await loadLogs(); await refreshStats(); }
+
+async function refreshStats(){
+  const s=await api('/api/stats');
+  document.getElementById('statWeek').textContent = s.week_total + ' دقیقه';
+  document.getElementById('statTotal').textContent = s.total_all + ' دقیقه';
+  document.getElementById('statPlan').textContent = s.plan_id ? 'هفته '+s.week_start : '—';
+  // chart
+  const labels = s.trend.map(t=>t.log_date);
+  const data = s.trend.map(t=>t.total);
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById('trendChart'), {
+    type:'line',
+    data:{labels, datasets:[{label:'دقیقه مطالعه', data, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.1)', fill:true, tension:0.3}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+}
+
+(async()=>{
+  await refreshStatus();
+  await loadSubjects();
+  await loadPlans();
+  await loadLogs();
+  await refreshStats();
+})();
+</script>
+</body>
+</html>
