@@ -217,16 +217,27 @@ MIGRATIONS = [
     "ALTER TABLE plan_items ADD COLUMN time_slot VARCHAR(20) DEFAULT 'any'",
     "ALTER TABLE plan_items ADD COLUMN priority TINYINT DEFAULT 2",
     "ALTER TABLE study_logs ADD COLUMN mood VARCHAR(20) DEFAULT NULL",
+    "CREATE UNIQUE INDEX uq_subject_name ON subjects(name)",
 ]
 
 def run_migrations(db):
     with db.cursor() as cur:
+        # dedup subjects before adding unique index (keep first id per name)
+        try:
+            cur.execute("SELECT name, MIN(id) as keep_id FROM subjects GROUP BY name HAVING COUNT(*)>1")
+            dups = cur.fetchall()
+            for row in dups:
+                cur.execute("DELETE FROM subjects WHERE name=%s AND id != %s", (row['name'], row['keep_id']))
+                logging.info(f"Dedup subject '{row['name']}' kept {row['keep_id']}")
+        except Exception as e:
+            logging.debug(f"dedup skip: {e}")
         for sql in MIGRATIONS:
             try:
                 cur.execute(sql)
                 logging.info(f"Migration OK: {sql[:60]}")
             except Exception as e:
-                if 'Duplicate column' in str(e) or 'already exists' in str(e) or '1060' in str(e):
+                msg = str(e)
+                if 'Duplicate column' in msg or 'already exists' in msg or '1060' in msg or 'Duplicate key' in msg or '1062' in msg:
                     continue
                 logging.debug(f"Migration skip: {e}")
 
@@ -944,8 +955,8 @@ def export_csv():
     except Exception as e:
         return jsonify(error=str(e)), 500
 
-# BUILD_ID 1787423951 - v3.1 full jalali all sections
-# BUILD_ID 1787423951 - v3.1 full jalali all sections
+# BUILD_ID 1787424579 - v3.2 ordered + dedup
+# BUILD_ID 1787424579 - v3.2 ordered + dedup
 logging.info(f"App loaded, PORT={os.getenv('PORT','5000')}, env PORT present={bool(os.getenv('PORT'))}")
 
 if __name__ == '__main__':
